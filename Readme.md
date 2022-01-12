@@ -1,4 +1,14 @@
-# File structure
+
+# How to use 
+## Evaluation
+First, we need to download the submodule for evaluation :
+```bash
+$ git submodule init
+$ git submodule update
+```
+
+## Build dataset
+First we need to have the initial data as follows :
 
 ```bash
 medical_txt_parser
@@ -34,11 +44,8 @@ medical_txt_parser
 	└── src/                
 ```
 
-
-# How to use 
-## Evaluation
-First, we need to download the submodule for evaluation :
+Then execute the following command to build the dataset :
 ```bash
-$ git submodule init
-$ git submodule update
+$ ./src/data_merger.sh
 ```
+
