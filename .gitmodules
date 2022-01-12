@@ -1,0 +1,3 @@
+[submodule "health_data_challenge"]
+	path = health_data_challenge
+	url = https://github.com/sioufia/health_data_challenge.git
