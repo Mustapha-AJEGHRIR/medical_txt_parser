@@ -44,7 +44,7 @@ medical_txt_parser
 	└── src/                
 ```
 
-Then execute the following command to build the dataset :
+Then execute the following command to build the dataset from the root of the project:
 ```bash
 $ ./src/data_merger.sh
 ```
