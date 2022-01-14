@@ -24,7 +24,7 @@ medical_txt_parser
 			├── rel
 				...
 				└── record-13.rel
-			├── txt
+			└── txt
 				...
 				└── record-13.txt
 		└── partners/
@@ -37,7 +37,7 @@ medical_txt_parser
 			├── rel
 				...
 				└── record-10.rel
-			├── txt
+			└── txt
 				...
 				└── record-10.txt
 	
