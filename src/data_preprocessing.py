@@ -1,8 +1,9 @@
 # ---------------------------------------------------------------------------- #
 #                                    Imports                                   #
 # ---------------------------------------------------------------------------- #
-from asyncio.proactor_events import constants
+from datasets import Dataset, load_dataset, Sequence, ClassLabel
 from tqdm import tqdm
+from transformers import (AutoTokenizer)
 import pandas as pd
 import glob
 import sys
@@ -24,15 +25,72 @@ from src.utils.parse_data import parse_ast, parse_concept, parse_relation
 # ---------------------------------------------------------------------------- #
 DEFAULT_DATA_DIR = os.path.join(get_root_dir(), "data")
 NEW_LINE_CHAR = "\n"
+MODEL_CHECKPOINT =  "allenai/scibert_scivocab_uncased"
+
+# ---------------------------------------------------------------------------- #
+#                                     Utils                                    #
+# ---------------------------------------------------------------------------- #
+def get_generate_row_labels(tokenizer, label_list, available_labels, verbose=False):
+    def generate_row_labels(row, verbose=verbose):
+        """ Given a row from the consolidated `Ade_corpus_v2_drug_ade_relation` dataset, 
+        generates BIO tags for drug and effect entities. 
+        
+        """
+
+        text = row["text"]
+
+        labels = []
+        label = "O"
+        prefix = ""
+        
+        # while iterating through tokens, increment to traverse all drug and effect spans
+        label_index = {l : 0 for l in available_labels}
+        
+        tokens = tokenizer(text, return_offsets_mapping=True)
+
+        for n in range(len(tokens["input_ids"])):
+            offset_start, offset_end = tokens["offset_mapping"][n]
+
+            # should only happen for [CLS] and [SEP]
+            if offset_end - offset_start == 0:
+                labels.append(-100)
+                continue
+            
+            
+            for l in available_labels :
+                if label_index[l] < len(row[l+"_indices_start"]) and offset_start == row[l+"_indices_start"][label_index[l]]:
+                    label = l.upper()
+                    prefix = "B-"
+                    break
+            
+            labels.append(label_list.index(f"{prefix}{label}"))
+            
+            for l in available_labels :
+                if label_index[l] < len(row[l+"_indices_start"]) and offset_end == row[l+"_indices_start"][label_index[l]]:
+                    label = "O"
+                    prefix = ""
+                    label_index += 1
+                    break
+
+            # need to transition "inside" if we just entered an entity
+            if prefix == "B-":
+                prefix = "I-"
+        
+        if verbose:
+            print(row)
+            orig = tokenizer.convert_ids_to_tokens(tokens["input_ids"])
+            for n in range(len(labels)):
+                print(orig[n], labels[n])
+        tokens["labels"] = labels
+        
+        return tokens
+    return generate_row_labels
 
 # ---------------------------------------------------------------------------- #
 #                                     Main                                     #
 # ---------------------------------------------------------------------------- #
 class Get_and_process_data:
-    def __init__(self, data_path = DEFAULT_DATA_DIR, train_only = True):
-        
-        print(data_path)
-        
+    def __init__(self, tokenizer = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT), data_path = DEFAULT_DATA_DIR, train_split = 0.8):
         self.labels = ["test", "treatment", 
                     "present", "absent", "possible", "conditional",
                     "hypothetical", "associated with someone else"]
@@ -42,14 +100,15 @@ class Get_and_process_data:
         self.concept_folder_name = "concept"
         self.rel_folder_name = "rel"
         self.txt_folder_name = "txt"
-
+        self.train_split = train_split
+        self.tokenizer = tokenizer
+        
     def load_parse(self):
         """See EDA for better understanding of this function"""
-        
         text_files = glob.glob(self.train_data_path + os.sep + self.txt_folder_name + os.sep +  "*.txt")
         filename = ""
         raw_files = pd.DataFrame()
-        for file in tqdm(text_files):
+        for file in tqdm(text_files, "Loading raw text"):
             with open(file, 'r') as f:
                 text = f.read()
                 filename = file.split("/")[-1].split(".")[0]
@@ -61,7 +120,7 @@ class Get_and_process_data:
         raw_text = raw_files[["text", "filename"]].set_index("filename")
         
         ast_concept_df = pd.DataFrame()
-        for i, file in raw_files.iterrows():
+        for i, file in tqdm(raw_files.iterrows(), "Processing raw text"):
             ast_dict = file["ast"]
             concept_dict = file["concept"]
             tmp_ast = pd.DataFrame(ast_dict)
@@ -96,7 +155,7 @@ class Get_and_process_data:
         
         preproc_data = {}
 
-        for i, row in tqdm(ast_concept_df.iterrows()):
+        for i, row in tqdm(ast_concept_df.iterrows(), "Formatting dataset"):
             filename = row["filename"]
             text = raw_text.loc[filename]["text"]
 
@@ -133,9 +192,37 @@ class Get_and_process_data:
                     preproc_data[line_id][label+"_indices_start"].add(start_char_index)
                     preproc_data[line_id][label+"_indices_end"].add(end_char_index)
                     break
-        return pd.DataFrame(preproc_data).T
+        preproc_df = pd.DataFrame(preproc_data).T
+        for label in self.labels:
+            preproc_df[label+"_indices_start"] = preproc_df[label+"_indices_start"].apply(list).apply(sorted)
+            preproc_df[label+"_indices_end"] = preproc_df[label+"_indices_end"].apply(list).apply(sorted)
+
+        preproc_df.to_json(os.path.join(self.train_data_path, "dataset.jsonl"), orient="records", lines=True)
+        dataset = load_dataset("json", data_files=os.path.join(self.train_data_path, "dataset.jsonl"))
+        return dataset["train"].train_test_split(train_size=self.train_split)
+    
+    def token_labeling(self, dataset : Dataset):
         
+        label_list = ['O']
+        for label in self.labels:
+            label_list.append("B-"+label.upper())
+            label_list.append("I-"+label.upper())
+            
+        custom_seq = Sequence(feature=ClassLabel(num_classes=len(label_list),
+                                                names=label_list,
+                                                names_file=None, id=None), length=-1, id=None)
+
+        dataset["train"].features["ner_tags"] = custom_seq
+        dataset["test"].features["ner_tags"] = custom_seq
         
+        labeled_dataset = dataset.map(get_generate_row_labels(self.tokenizer, label_list, self.labels))
+        return labeled_dataset
+
+    def get_dataset(self):
+        dataset = self.format(*self.load_parse())
+        return self.token_labeling(dataset)
+def get_default_dataset():
+    return Get_and_process_data().get_dataset()
+
 if __name__ == "__main__":
-    data = Get_and_process_data()
-    print(data.format(*data.load_parse()))
+    print(Get_and_process_data().get_dataset())
