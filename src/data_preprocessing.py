@@ -102,6 +102,7 @@ class Get_and_process_data:
         self.txt_folder_name = "txt"
         self.train_split = train_split
         self.tokenizer = tokenizer
+        self.label_list = None
         
     def load_parse(self):
         """See EDA for better understanding of this function"""
@@ -216,8 +217,12 @@ class Get_and_process_data:
         dataset["test"].features["ner_tags"] = custom_seq
         
         labeled_dataset = dataset.map(get_generate_row_labels(self.tokenizer, label_list, self.labels))
+        self.label_list = label_list
         return labeled_dataset
 
+    def get_label_list(self):
+        return self.label_list
+    
     def get_dataset(self):
         dataset = self.format(*self.load_parse())
         return self.token_labeling(dataset)
@@ -225,4 +230,4 @@ def get_default_dataset():
     return Get_and_process_data().get_dataset()
 
 if __name__ == "__main__":
-    print(Get_and_process_data().get_dataset())
+    print(get_default_dataset())
