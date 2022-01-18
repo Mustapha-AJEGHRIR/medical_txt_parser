@@ -11,7 +11,7 @@ import os
 
 def get_root_dir():
     path = os.path.dirname(__file__)
-    for _ in range(2):
+    for _ in range(1):
         path = os.path.dirname(path)
     return path
 
