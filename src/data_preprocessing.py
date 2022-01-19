@@ -30,6 +30,12 @@ MODEL_CHECKPOINT =  "allenai/scibert_scivocab_uncased"
 # ---------------------------------------------------------------------------- #
 #                                     Utils                                    #
 # ---------------------------------------------------------------------------- #
+def get_simple_tokenize(tokenizer):
+    def simple_tokenize(row):
+        tokens = tokenizer(row["text"], return_offsets_mapping=True)    
+        return tokens
+    return simple_tokenize
+
 def get_generate_row_labels(tokenizer, label_list, available_labels, verbose=False):
     def generate_row_labels(row, verbose=verbose):
         """ Given a row from the consolidated `Ade_corpus_v2_drug_ade_relation` dataset, 
@@ -90,12 +96,13 @@ def get_generate_row_labels(tokenizer, label_list, available_labels, verbose=Fal
 #                                     Main                                     #
 # ---------------------------------------------------------------------------- #
 class Get_and_process_data:
-    def __init__(self, tokenizer = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT), data_path = DEFAULT_DATA_DIR, train_split = 0.8):
+    def __init__(self, tokenizer = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT), 
+                 data_path = DEFAULT_DATA_DIR, train_split = 0.8, add_unlabeled=True):
         self.labels = ["test", "treatment", 
                     "present", "absent", "possible", "conditional",
                     "hypothetical", "associated with someone else"]
         self.train_data_path = os.path.join(data_path, "train")
-        self.val_data_path = os.path.join(data_path, "val")
+        self.test_data_path = os.path.join(data_path, "val")
         self.ast_folder_name = "ast"
         self.concept_folder_name = "concept"
         self.rel_folder_name = "rel"
@@ -103,12 +110,64 @@ class Get_and_process_data:
         self.train_split = train_split
         self.tokenizer = tokenizer
         self.label_list = None
+        self.add_unlabeled = add_unlabeled
+    
+    def load_raw_test(self):
+        text_files = glob.glob(self.test_data_path + os.sep + self.txt_folder_name + os.sep +  "*.txt")
+        filename = ""
+        lines = pd.DataFrame()
+        for file in tqdm(text_files, "Loading raw text for test"):
+            with open(file, 'r') as f:
+                text = f.read()
+                filename = file.split("/")[-1].split(".")[0]
+                for i, line in enumerate(text.split(NEW_LINE_CHAR)): 
+                    lines = lines.append(pd.DataFrame({"text": [line], "filename": [filename], "line": i+1}), ignore_index=True)
+
+        preproc_data = {}
+        for i, row in tqdm(lines.iterrows(), "Formatting test data"):
+            line_id = row["filename"] + "_" + str(row["line"])
+            preproc_data[line_id] = {
+                    "text": row["text"],
+                }
+        
+        # -------------------- Save and make hugging face dataset -------------------- #
+        preproc_df = pd.DataFrame(preproc_data).T
+        preproc_df.to_json(os.path.join(self.test_data_path, "dataset.jsonl"), orient="records", lines=True)
+        dataset = load_dataset("json", data_files={"TEST" : os.path.join(self.train_data_path, "dataset.jsonl")})
+        
+        # ------------------ Creating the right format and tokenize ------------------ #
+        label_list = ['O']
+        for label in self.labels:
+            label_list.append("B-"+label.upper())
+            label_list.append("I-"+label.upper())
+            
+        custom_seq = Sequence(feature=ClassLabel(num_classes=len(label_list),
+                                                names=label_list,
+                                                names_file=None, id=None), length=-1, id=None)
+
+        dataset["TEST"].features["ner_tags"] = custom_seq
+        
+        labeled_dataset = dataset.map(get_simple_tokenize(self.tokenizer))
+        return labeled_dataset
         
     def load_parse(self):
-        """See EDA for better understanding of this function"""
+        """
+        Output :
+        
+        ast_concept_df :
+                    concept_text  start_line  start_word_number  end_line  end_word_number ast_con_label      filename
+        0                     pain          55                 10        55               10  hypothetical  018636330_DH.txt
+        1           hyperlipidemia          29                  4        29                4       present  018636330_DH
+        
+        raw_text :
+                                                                    text
+        filename                                                          
+        018636330_DH     018636330 DH\n5425710\n123524\n0144918\n6/2/20...
+        """
         text_files = glob.glob(self.train_data_path + os.sep + self.txt_folder_name + os.sep +  "*.txt")
         filename = ""
         raw_files = pd.DataFrame()
+        unlabeled_lines = pd.DataFrame()
         for file in tqdm(text_files, "Loading raw text"):
             with open(file, 'r') as f:
                 text = f.read()
@@ -118,8 +177,14 @@ class Get_and_process_data:
                 rel = parse_relation(self.train_data_path + os.sep + self.rel_folder_name + os.sep +  filename + ".rel")
                 
                 raw_files = raw_files.append(pd.DataFrame({"text": [text], "filename": [filename] , "concept": [concept], "ast": [ast], "rel": [rel]}), ignore_index=True)
+            # -------------------- known lines are the ones in Concept ------------------- #
+            known_lines = concept["start_line"]
+            for i, line in enumerate(text.split(NEW_LINE_CHAR)): 
+                if not i+1 in known_lines:
+                    unlabeled_lines = unlabeled_lines.append(pd.DataFrame({"text": [line], "filename": [filename], "line": i+1}), ignore_index=True)
         raw_text = raw_files[["text", "filename"]].set_index("filename")
         
+        # ---------------------------- Mixing the 2 tasks ---------------------------- #
         ast_concept_df = pd.DataFrame()
         for i, file in tqdm(raw_files.iterrows(), "Processing raw text"):
             ast_dict = file["ast"]
@@ -150,12 +215,24 @@ class Get_and_process_data:
                 ast_concept_df = ast_concept_df.append(tmp_concept, ignore_index=True)            
         #cols = concept_text, start_line, start_word_number, end_line, end_word_number, ast_con_label, filename
         
-        return ast_concept_df, raw_text
+        return ast_concept_df, raw_text, unlabeled_lines
 
-    def format(self, ast_concept_df : pd.DataFrame, raw_text : pd.DataFrame):
+    def format(self, ast_concept_df : pd.DataFrame, raw_text : pd.DataFrame, unlabeled_lines : pd.DataFrame):
         
         preproc_data = {}
 
+        # -------------------------- Add the unlabeled_lines ------------------------- #
+        for i, row in tqdm(unlabeled_lines.iterrows(), "Adding unlabeled lines"):
+            line_id = row["filename"] + "_" + str(row["line"])
+            preproc_data[line_id] = {
+                    "text": row["text"],
+                }
+            for label in self.labels:
+                preproc_data[line_id][label] = []
+                # use sets because the indices can repeat for various reasons
+                preproc_data[line_id][label+"_indices_start"] = set()
+                preproc_data[line_id][label+"_indices_end"] = set()
+        
         for i, row in tqdm(ast_concept_df.iterrows(), "Formatting dataset"):
             filename = row["filename"]
             text = raw_text.loc[filename]["text"]
@@ -218,6 +295,10 @@ class Get_and_process_data:
         
         labeled_dataset = dataset.map(get_generate_row_labels(self.tokenizer, label_list, self.labels))
         self.label_list = label_list
+        
+        # ----------------------------- Adding test data ----------------------------- #
+        test_dataset = self.load_raw_test()
+        labeled_dataset["TEST"] = test_dataset["TEST"]
         return labeled_dataset
 
     def get_label_list(self):
