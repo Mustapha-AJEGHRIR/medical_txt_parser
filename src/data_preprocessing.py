@@ -133,7 +133,7 @@ class Get_and_process_data:
         # -------------------- Save and make hugging face dataset -------------------- #
         preproc_df = pd.DataFrame(preproc_data).T
         preproc_df.to_json(os.path.join(self.test_data_path, "dataset.jsonl"), orient="records", lines=True)
-        dataset = load_dataset("json", data_files={"TEST" : os.path.join(self.train_data_path, "dataset.jsonl")})
+        dataset = load_dataset("json", data_files={"test" : os.path.join(self.train_data_path, "dataset.jsonl")})
         
         # ------------------ Creating the right format and tokenize ------------------ #
         label_list = ['O']
@@ -145,7 +145,7 @@ class Get_and_process_data:
                                                 names=label_list,
                                                 names_file=None, id=None), length=-1, id=None)
 
-        dataset["TEST"].features["ner_tags"] = custom_seq
+        dataset["test"].features["ner_tags"] = custom_seq
         
         labeled_dataset = dataset.map(get_simple_tokenize(self.tokenizer))
         return labeled_dataset
@@ -277,7 +277,10 @@ class Get_and_process_data:
 
         preproc_df.to_json(os.path.join(self.train_data_path, "dataset.jsonl"), orient="records", lines=True)
         dataset = load_dataset("json", data_files=os.path.join(self.train_data_path, "dataset.jsonl"))
-        return dataset["train"].train_test_split(train_size=self.train_split)
+        dataset = dataset["train"].train_test_split(train_size=self.train_split)
+        # ---------------------------------- rename ---------------------------------- #
+        dataset["val"] = dataset["test"]
+        return dataset
     
     def token_labeling(self, dataset : Dataset):
         
@@ -291,14 +294,14 @@ class Get_and_process_data:
                                                 names_file=None, id=None), length=-1, id=None)
 
         dataset["train"].features["ner_tags"] = custom_seq
-        dataset["test"].features["ner_tags"] = custom_seq
+        dataset["val"].features["ner_tags"] = custom_seq
         
         labeled_dataset = dataset.map(get_generate_row_labels(self.tokenizer, label_list, self.labels))
         self.label_list = label_list
         
         # ----------------------------- Adding test data ----------------------------- #
         test_dataset = self.load_raw_test()
-        labeled_dataset["TEST"] = test_dataset["TEST"]
+        labeled_dataset["test"] = test_dataset["test"]
         return labeled_dataset
 
     def get_label_list(self):
