@@ -3,6 +3,8 @@ train_data/
 val_data/
 data
 training_logs/
+models/
+predictions/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
