@@ -128,6 +128,7 @@ class Get_and_process_data:
             line_id = row["filename"] + "_" + str(row["line"])
             preproc_data[line_id] = {
                     "text": row["text"],
+                    "row" : row["line"]
                 }
         
         # -------------------- Save and make hugging face dataset -------------------- #
@@ -226,6 +227,7 @@ class Get_and_process_data:
             line_id = row["filename"] + "_" + str(row["line"])
             preproc_data[line_id] = {
                     "text": row["text"],
+                    "row" : row["line"]
                 }
             for label in self.labels:
                 preproc_data[line_id][label] = []
@@ -258,6 +260,7 @@ class Get_and_process_data:
             if line_id not in preproc_data:
                 preproc_data[line_id] = {
                     "text": line,
+                    "row" : row["start_line"]
                 }
                 for label in self.labels:
                     preproc_data[line_id][label] = []
