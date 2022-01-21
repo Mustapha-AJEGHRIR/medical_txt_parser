@@ -133,7 +133,7 @@ class Get_and_process_data:
         # -------------------- Save and make hugging face dataset -------------------- #
         preproc_df = pd.DataFrame(preproc_data).T
         preproc_df.to_json(os.path.join(self.test_data_path, "dataset.jsonl"), orient="records", lines=True)
-        dataset = load_dataset("json", data_files={"test" : os.path.join(self.train_data_path, "dataset.jsonl")})
+        dataset = load_dataset("json", data_files={"test" : os.path.join(self.test_data_path, "dataset.jsonl")})
         
         # ------------------ Creating the right format and tokenize ------------------ #
         label_list = ['O']
