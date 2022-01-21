@@ -128,7 +128,8 @@ class Get_and_process_data:
             line_id = row["filename"] + "_" + str(row["line"])
             preproc_data[line_id] = {
                     "text": row["text"],
-                    "row" : row["line"]
+                    "row" : row["line"],
+                    "filename": row["filename"],
                 }
         
         # -------------------- Save and make hugging face dataset -------------------- #
@@ -227,7 +228,8 @@ class Get_and_process_data:
             line_id = row["filename"] + "_" + str(row["line"])
             preproc_data[line_id] = {
                     "text": row["text"],
-                    "row" : row["line"]
+                    "row" : row["line"],
+                    "filename": row["filename"],
                 }
             for label in self.labels:
                 preproc_data[line_id][label] = []
@@ -250,8 +252,6 @@ class Get_and_process_data:
             if start_char_index > 0:
                 start_char_index += 1
             end_char_index = start_char_index + len(row["concept_text"])
-            if line[start_char_index:end_char_index] == "cut cord compression , par":
-                print("dlmds")
             assert (
                 line[start_char_index:end_char_index] == row["concept_text"]
             ), f"concept_text doesn't match the found indexes. '{line[start_char_index:end_char_index]}' != '{row['concept_text']}'"
@@ -260,7 +260,8 @@ class Get_and_process_data:
             if line_id not in preproc_data:
                 preproc_data[line_id] = {
                     "text": line,
-                    "row" : row["start_line"]
+                    "row" : row["start_line"],
+                    "filename": row["filename"],
                 }
                 for label in self.labels:
                     preproc_data[line_id][label] = []
@@ -313,8 +314,12 @@ class Get_and_process_data:
     def get_dataset(self):
         dataset = self.format(*self.load_parse())
         return self.token_labeling(dataset)
+    
+
+    
 def get_default_dataset():
     return Get_and_process_data().get_dataset()
+
 
 if __name__ == "__main__":
     print(get_default_dataset())
