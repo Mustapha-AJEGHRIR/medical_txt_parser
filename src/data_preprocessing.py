@@ -30,6 +30,15 @@ MODEL_CHECKPOINT =  "allenai/scibert_scivocab_uncased"
 # ---------------------------------------------------------------------------- #
 #                                     Utils                                    #
 # ---------------------------------------------------------------------------- #
+def masking(l):
+    if l >= 5:
+        if l % 2 == 0:
+            return 6
+        else :
+            return 5
+    else :
+        return l
+        
 def get_simple_tokenize(tokenizer):
     def simple_tokenize(row):
         tokens = tokenizer(row["text"], return_offsets_mapping=True)    
@@ -69,7 +78,7 @@ def get_generate_row_labels(tokenizer, label_list, available_labels, verbose=Fal
                     prefix = "B-"
                     break
             
-            labels.append(label_list.index(f"{prefix}{label}"))
+            labels.append(masking(label_list.index(f"{prefix}{label}")))
             
             for l in available_labels :
                 if label_index[l] < len(row[l+"_indices_start"]) and offset_end == row[l+"_indices_start"][label_index[l]]:
@@ -101,6 +110,11 @@ class Get_and_process_data:
         self.labels = ["test", "treatment", 
                     "present", "absent", "possible", "conditional",
                     "hypothetical", "associated with someone else"]
+        print("---------------------------------")
+        print("---------------------------------")
+        print("For now there is a masking, only concepts are being done")
+        print("---------------------------------")
+        print("---------------------------------")
         self.train_data_path = os.path.join(data_path, "train")
         self.test_data_path = os.path.join(data_path, "val")
         self.ast_folder_name = "ast"
@@ -180,10 +194,11 @@ class Get_and_process_data:
                 
                 raw_files = raw_files.append(pd.DataFrame({"text": [text], "filename": [filename] , "concept": [concept], "ast": [ast], "rel": [rel]}), ignore_index=True)
             # -------------------- known lines are the ones in Concept ------------------- #
-            known_lines = concept["start_line"]
-            for i, line in enumerate(text.split(NEW_LINE_CHAR)): 
-                if not i+1 in known_lines:
-                    unlabeled_lines = unlabeled_lines.append(pd.DataFrame({"text": [line], "filename": [filename], "line": i+1}), ignore_index=True)
+            if self.add_unlabeled:
+                known_lines = concept["start_line"]
+                for i, line in enumerate(text.split(NEW_LINE_CHAR)): 
+                    if not i+1 in known_lines:
+                        unlabeled_lines = unlabeled_lines.append(pd.DataFrame({"text": [line], "filename": [filename], "line": i+1}), ignore_index=True)
         raw_text = raw_files[["text", "filename"]].set_index("filename")
         
         # ---------------------------- Mixing the 2 tasks ---------------------------- #

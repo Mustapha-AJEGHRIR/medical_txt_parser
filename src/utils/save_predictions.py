@@ -49,7 +49,7 @@ def save_predictions(test_data, predictions, ast_to_concept=ast_to_concept, toke
         if sum(predictions[i])==0:
             pass
         else:
-            pred = predictions[i][:len(a['input_ids'])] #remove padding zeros
+            pred = predictions[i][0:len(a['input_ids'])-1] #remove padding zeros
             # -------------------------------- Real thing -------------------------------- #
             old_token = None
             splits = []
@@ -61,6 +61,8 @@ def save_predictions(test_data, predictions, ast_to_concept=ast_to_concept, toke
                         splits[-1][1] = j
                     old_token = token
                     splits.append([j, None, token])
+            if splits[-1][1]==None:
+                splits[-1][1] = splits[-1][0]+1
             for split in splits :
                 token = split[-1]
                 if token == 0:
