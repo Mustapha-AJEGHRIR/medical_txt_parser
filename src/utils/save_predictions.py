@@ -40,12 +40,22 @@ token_id_to_label = {0: 'o',
 def save_predictions(test_data, predictions, ast_to_concept=ast_to_concept, token_id_to_label=token_id_to_label, output_dir=DEFAULT_OUTPUT_DIR):
     # see if ouput dir exists, if not create it
     if not os.path.exists(os.path.join(output_dir, "con")):
-        os.makedirs(os.path.join(output_dir, "con"))     
+        os.makedirs(os.path.join(output_dir, "con"))
     if not os.path.exists(os.path.join(output_dir, "ast")):
         os.makedirs(os.path.join(output_dir, "ast"))     
-    
+
     known_files = set({}) # set of files that have seen, because in the first time we clear the file
     for i,a in enumerate(test_data):
+        
+        #creat files
+        con_output_dir = os.path.join(output_dir, "con")
+        ast_output_dir = os.path.join(output_dir, "ast")
+
+        open(os.path.join(con_output_dir, a['filename'] + ".con"), 'a').close()
+        open(os.path.join(ast_output_dir, a['filename'] + ".ast"), 'a').close()
+        
+        
+        
         if sum(predictions[i])==0:
             pass
         else:
@@ -70,14 +80,19 @@ def save_predictions(test_data, predictions, ast_to_concept=ast_to_concept, toke
                 mapping_list = a['offset_mapping'][split[0]:split[1]]
                 mapping = [mapping_list[0][0], mapping_list[-1][1]] #by character
                 
+
+                
+
                 # ------------------------------- word_mapping ------------------------------- #
-                word_mapping_0 = len(a['text'][:mapping[0]].strip().split(" "))
-                word_mapping_1 = word_mapping_0 + len(a['text'][mapping[0]:mapping[1]].strip().split(" ")) - 1
+                word = a["text"][mapping[0]:mapping[1]]
+                word_mapping_0 = a["text"][:mapping[0]].count(" ")
+                word_mapping_1 = a["text"][:mapping[1]].count(" ")
                 word_mapping = [word_mapping_0, word_mapping_1]
+                # word = " ".join(a['text'].split(" ")[word_mapping[0]:word_mapping[1]+1]).strip()
                 
                 
                 # -------------------------------- Build lines ------------------------------- #
-                con_line = 'c="'+str(a["text"][mapping[0]:mapping[1]])
+                con_line = 'c="'+ word
                 con_line += '" ' 
                 con_line += str(a["row"]) + ":" + str(word_mapping[0])
                 con_line += ' '
@@ -90,11 +105,12 @@ def save_predictions(test_data, predictions, ast_to_concept=ast_to_concept, toke
                     ast_line += token_id_to_label[token]
                     ast_line += '"'
                 
+                # if a['filename'] == "0033":
+                #     print("kj")
                 
                 # ---------------------------------------------------------------------------- #
                 #                                    Concept                                   #
                 # ---------------------------------------------------------------------------- #
-                con_output_dir = os.path.join(output_dir, "con")
                 if a['filename'] + ".con" in known_files:
                     pass
                 else : 
@@ -106,7 +122,6 @@ def save_predictions(test_data, predictions, ast_to_concept=ast_to_concept, toke
                 # ---------------------------------------------------------------------------- #
                 #                                   Assertion                                  #
                 # ---------------------------------------------------------------------------- #
-                ast_output_dir = os.path.join(output_dir, "ast")
                 if ast_to_concept[token_id_to_label[token]] == "problem":
                     if a['filename'] + ".ast" in known_files:
                         pass

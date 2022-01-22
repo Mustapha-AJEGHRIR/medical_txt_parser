@@ -111,11 +111,6 @@ class Get_and_process_data:
         self.labels = ["test", "treatment", 
                     "present", "absent", "possible", "conditional",
                     "hypothetical", "associated with someone else"]
-        print("---------------------------------")
-        print("---------------------------------")
-        print("For now there is a masking, only concepts are being done")
-        print("---------------------------------")
-        print("---------------------------------")
         self.train_data_path = os.path.join(data_path, "train")
         self.test_data_path = os.path.join(data_path, "val")
         self.ast_folder_name = "ast"
