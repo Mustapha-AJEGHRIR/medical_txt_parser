@@ -30,7 +30,7 @@ MODEL_CHECKPOINT =  "allenai/scibert_scivocab_uncased"
 # ---------------------------------------------------------------------------- #
 #                                     Utils                                    #
 # ---------------------------------------------------------------------------- #
-def masking(l):
+def masking(l): #to use if we only want concepts
     if l >= 5:
         if l % 2 == 0:
             return 6
@@ -78,13 +78,14 @@ def get_generate_row_labels(tokenizer, label_list, available_labels, verbose=Fal
                     prefix = "B-"
                     break
             
-            labels.append(masking(label_list.index(f"{prefix}{label}")))
+            # labels.append(masking(label_list.index(f"{prefix}{label}")))
+            labels.append(label_list.index(f"{prefix}{label}"))
             
             for l in available_labels :
-                if label_index[l] < len(row[l+"_indices_start"]) and offset_end == row[l+"_indices_start"][label_index[l]]:
+                if label_index[l] < len(row[l+"_indices_end"]) and offset_end == row[l+"_indices_end"][label_index[l]]:
                     label = "O"
                     prefix = ""
-                    label_index += 1
+                    label_index[l] += 1
                     break
 
             # need to transition "inside" if we just entered an entity
