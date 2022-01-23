@@ -5,6 +5,7 @@ data
 training_logs/
 models/
 predictions/
+output/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
