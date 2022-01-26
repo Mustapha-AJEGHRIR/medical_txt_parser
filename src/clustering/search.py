@@ -28,7 +28,7 @@ class Buffer_best_k:
         return self.values
 
 
-with open(config.embeddings_path + os.sep + "clustered_data.pkl", "rb") as f:
+with open(config.embeddings_path + os.sep + "clustered_data_concepts.pkl", "rb") as f:
     clustered_data = pickle.load(f)
 
 

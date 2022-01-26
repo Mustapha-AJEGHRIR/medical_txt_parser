@@ -39,14 +39,15 @@ def find_cluster(query_emb, clustered_data, similarity=similarity):
             best_score = score
     return best_cluster
 
-def text_splitter(text, lines_per_tokenization=lines_per_tokenization):
-    lines = text.split("\n")
-    
-    texts = []
-    for i in range(len(lines)//lines_per_tokenization):
-        texts.append("\n".join(lines[i*lines_per_tokenization:(i+1)*lines_per_tokenization]))
-        
-    return texts
+def text_splitter(text, file_path):
+    con_file_path = os.path.dirname(os.path.dirname(file_path)) + os.sep + "concept" + os.sep + os.path.basename(file_path).split(".")[0] + ".con"
+    concepts_lines = list(set(parse_concept(con_file_path)["start_line"]))
+    concepts_lines.sort()
+    texts = text.split("\n")
+    concepts = []
+    for line in concepts_lines:
+        concepts.append(texts[line-1])
+    return concepts
 
 def semantic_search_base(query_emb, doc_emb, docs):
     #Compute dot score between query and all document embeddings
@@ -79,9 +80,10 @@ def forward(texts, tokenizer= tokenizer, model= model):
     return embeddings
 
 
-def forward_doc(texts, tokenizer= tokenizer, model= model, no_grad= False):
-    texts = text_splitter(texts) 
-    
+def forward_doc(text, file_path, tokenizer= tokenizer, model= model, no_grad= False):
+    texts = text_splitter(text, file_path) 
+    if len(texts) == 0:
+        return []
     # Tokenize sentences
     encoded_input = tokenizer(texts, padding=True, truncation=True, return_tensors='pt')
     
