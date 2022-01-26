@@ -22,9 +22,7 @@ from scipy.cluster.hierarchy import dendrogram
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.manifold import TSNE
 
-
-if __name__ == "__main__":
-    
+def train():
     all_docs = {}
     text_files = glob.glob(data_path + os.sep +  "*.txt")
     for file_path in tqdm(text_files, "Encoding documents", ascii=True):
@@ -60,3 +58,6 @@ if __name__ == "__main__":
 
     with open(embeddings_path + os.sep + "clustered_data_concepts.pkl", "wb") as f:
         pickle.dump(clustered_data, f)
+
+if __name__ == "__main__":
+    train()
