@@ -180,11 +180,8 @@ else:  # a record has been selected
         "<h1 style='text-align: center; '>Patient record</h1>",
         unsafe_allow_html=True,
     )
-    visualize_record(st.session_state["selected_record"])
-    # HTML_WRAPPER = """<div style="overflow-x: auto; border: 1px solid #e6e9ef; border-radius: 0.25rem; padding: 1rem">{}</div>"""
-    # st.write(HTML_WRAPPER.format(html),unsafe_allow_html=True)
-
-    # st.write(html,unsafe_allow_html=True)
+    # select task
+    task = st.selectbox("Task", ["concept", "assertion"], format_func=lambda x: {"concept": "Concepts detection", "assertion": "Assertions classification"}[x])
+    visualize_record(st.session_state["selected_record"], task=task)
     
     st.write(st.session_state["selected_record"])
-
