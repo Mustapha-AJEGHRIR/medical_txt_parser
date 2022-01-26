@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, request
-from utils import search_query
+from clustering.search import search_query
 import json
 
 app = Flask(__name__)

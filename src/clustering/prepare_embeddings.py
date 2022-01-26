@@ -4,7 +4,7 @@ import os
 import glob
 import pickle
 from config import *
-from utils import *
+from .utils import *
 
 # ---------------------------- Display and friends --------------------------- #
 from tqdm import tqdm
