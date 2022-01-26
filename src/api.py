@@ -16,7 +16,7 @@ def main():
     print("filters", request_data.get("filters"))
     filters =json.loads(request_data.get("filters"))
     records, count_filtered = search_query(query=request_data["query"], filters=filters, top=request_data["top"])
-    assert len(set([record["filename"] for record in records])) == len(records), "filenames of results are not unique"
+    assert len(set([record["id"] for record in records])) == len(records), "ids of results are not unique"
     res = {"value": records, "count": count_filtered}
     return json.dumps(res, indent=2)
 

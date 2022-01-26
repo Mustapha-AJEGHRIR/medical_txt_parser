@@ -136,7 +136,7 @@ if not st.session_state["selected_record"]: # search engine page
         record_list = []
         _ = [
             record_list.append(
-                {"filename": record["filename"], "preview": record["preview"], "metadata": record["metadata"]}
+                {"filename": record["filename"], "preview": record["preview"], "metadata": record["metadata"], "id": record["id"]}
             )
             for record in response.get("value")
         ]
@@ -155,10 +155,10 @@ if not st.session_state["selected_record"]: # search engine page
                 f"Select results (showing {shown_results} of {response.get('count')} results)",
                 record_list,
             ):
-                st.write("**Search result:** %s." % (i + 1))
-                st.button(f"View {record['filename']}", on_click=lambda: set_record(record), key=record["filename"])
+                st.button(f"View record {record['filename']}", on_click=lambda: set_record(record), key=record["id"])
                 st.write("**Filename:** %s" % (record["filename"]))
                 st.write("**Preview:** %s" % (record["preview"]))
+                st.markdown("---")
         else:
             st.write(f"No Search results, please try again with different keywords")
 

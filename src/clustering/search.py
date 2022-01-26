@@ -66,6 +66,7 @@ def search_query(query, filters={}, top=10):
             {
                 "score": float(scores[i]),
                 "filename": filename,
+                "id": name,
                 "preview": text_splitter(text)[paragraph],
                 "metadata": parse_metadata(filename),
             }
