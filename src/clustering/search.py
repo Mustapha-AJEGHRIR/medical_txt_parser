@@ -62,12 +62,13 @@ def search_query(query, filters={}, top=10):
         paragraph = int(paragraph)
         with open(config.data_path + os.sep + filename + ".txt") as f:
             text = f.read()
+        file_path = config.data_path + os.sep + filename + ".txt"
         results.append(
             {
                 "score": float(scores[i]),
                 "filename": filename,
                 "id": name,
-                "preview": text_splitter(text)[paragraph],
+                "preview": text_splitter(text, file_path)[paragraph],
                 "metadata": parse_metadata(filename),
             }
         )
