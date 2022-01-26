@@ -18,7 +18,6 @@ She was discharged on the following medications .
             },
         } for i in range(150)
     ]
-
     # filter results
     range_filters = ["age", "birthdate", "admission_date", "discharge_date"]
     multiselect_filters = ["sexe"]
@@ -35,7 +34,7 @@ She was discharged on the following medications .
                 if key in filters:
                     if result["metadata"][key] not in filters[key]:
                         valid = False
-                    break
+                        break
         if valid:
             filtered_results.append(result)
 

@@ -84,11 +84,10 @@ if not st.session_state["selected_record"]: # search engine page
     st.sidebar.markdown('# Filters')
     
     age_range = st.sidebar.slider('Age', min_value=0, max_value=100, value=(0,100))
-
     sexe = st.sidebar.multiselect('Sexe', ['F', 'M'], default=['F', 'M'])
     birthdate = st.sidebar.date_input('Birthdate', value=[datetime.date(1980, 1, 1), datetime.date(2021, 1, 1)])
-    admission_date = st.sidebar.date_input('Admission date', value=[datetime.date(2020, 1, 1), datetime.date(2021, 1, 1)])
-    discharge_date = st.sidebar.date_input('Discharge date', value=[datetime.date(2020, 1, 1), datetime.date(2021, 1, 1)])
+    admission_date = st.sidebar.date_input('Admission date', value=[datetime.date(1980, 1, 1), datetime.date(2021, 1, 1)])
+    discharge_date = st.sidebar.date_input('Discharge date', value=[datetime.date(1980, 1, 1), datetime.date(2021, 1, 1)])
 
     # clear filters
     # if st.sidebar.button('Clear filters'):
@@ -109,7 +108,6 @@ if not st.session_state["selected_record"]: # search engine page
     # Search bar
     search_query = st.text_input("Search for a patient's record", value="", max_chars=None, key=None, type="default")
 
-    # TODO: add filters
 
     # Search API
     index_name = "train-index"
