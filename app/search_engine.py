@@ -14,7 +14,7 @@ import requests
 from PIL import Image
 import base64
 import streamlit as st
-
+from st_utils import visualize_record
 
 # https://gist.github.com/treuille/2ce0acb6697f205e44e3e0f576e810b7
 def paginator(label, articles, articles_per_page=10, on_sidebar=True):
@@ -170,5 +170,10 @@ else:  # a record has been selected
         "<h1 style='text-align: center; '>Patient record</h1>",
         unsafe_allow_html=True,
     )
+    html = visualize_record(st.session_state["selected_record"])
+    # HTML_WRAPPER = """<div style="overflow-x: auto; border: 1px solid #e6e9ef; border-radius: 0.25rem; padding: 1rem">{}</div>"""
+    # st.write(HTML_WRAPPER.format(html),unsafe_allow_html=True)
 
+    st.write(html,unsafe_allow_html=True)
     st.write(st.session_state["selected_record"])
+
