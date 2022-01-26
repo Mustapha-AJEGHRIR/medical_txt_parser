@@ -1,7 +1,12 @@
-from config import *
 import torch
 import torch.nn.functional as F
 import numpy as np
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from config import *
+from utils.parse_data import parse_concept
 
 
 #Mean Pooling - Take average of all tokens
