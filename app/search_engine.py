@@ -3,9 +3,11 @@ based on https://betterprogramming.pub/build-a-search-engine-for-medium-stories-
 """
 import os
 import re
+import json
 from dotenv import load_dotenv
-
 load_dotenv()
+import datetime
+
 
 import itertools
 import requests
@@ -75,8 +77,24 @@ def set_record(record):
     st.session_state["selected_record"] = record
 
 
+
 if not st.session_state["selected_record"]: # search engine page
-    # Title
+
+    ### SIDEBAR
+    st.sidebar.markdown('# Filters')
+    
+    age_range = st.sidebar.slider('Age', min_value=0, max_value=100, value=(0,100))
+
+    sexe = st.sidebar.multiselect('Sexe', ['F', 'M'], default=['F', 'M'])
+    birthdate = st.sidebar.date_input('Birthdate', value=[datetime.date(1980, 1, 1), datetime.date(2021, 1, 1)])
+    admission_date = st.sidebar.date_input('Admission date', value=[datetime.date(2020, 1, 1), datetime.date(2021, 1, 1)])
+    discharge_date = st.sidebar.date_input('Discharge date', value=[datetime.date(2020, 1, 1), datetime.date(2021, 1, 1)])
+
+    # clear filters
+    # if st.sidebar.button('Clear filters'):
+    #     st.session_state["selected_record"] = None
+    #     st.sidebar.success('Filters cleared')
+
     st.markdown(
         "<h1 style='text-align: center; '>Patients records database</h1>",
         unsafe_allow_html=True,
@@ -101,10 +119,16 @@ if not st.session_state["selected_record"]: # search engine page
         "api-key": "password",
     }
     search_url = f"{endpoint}/indexes/{index_name}/docs/search"
-
+    filters = {
+        "age": age_range,
+        "sexe": sexe,
+        "birthdate": birthdate,
+        "admission_date": admission_date,
+        "discharge_date": discharge_date,
+    }
     search_body = {
         "query": search_query,
-        "filters": [],
+        "filters": json.dumps(filters, default=str),
         "top": 10,
     }
 

@@ -13,9 +13,11 @@ def hello():
 @app.route("/indexes/train-index/docs/search", methods=["POST"])
 def main():
     request_data = request.get_json()
-    records = search_query(query=request_data["query"], filters=request_data["filters"], top=request_data["top"])
+    print("filters", request_data.get("filters"))
+    filters =json.loads(request_data.get("filters"))
+    records, count_filtered = search_query(query=request_data["query"], filters=filters, top=request_data["top"])
     assert len(set([record["filename"] for record in records])) == len(records), "filenames of results are not unique"
-    res = {"value": records, "count": len(records)}
+    res = {"value": records, "count": count_filtered}
     return json.dumps(res, indent=2)
 
 
