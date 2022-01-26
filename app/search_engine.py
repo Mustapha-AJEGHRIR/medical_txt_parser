@@ -3,8 +3,11 @@ based on https://betterprogramming.pub/build-a-search-engine-for-medium-stories-
 """
 import os
 import re
+import json
 from dotenv import load_dotenv
 load_dotenv()
+import datetime
+
 
 import itertools
 import requests
@@ -66,96 +69,106 @@ def paginator(label, articles, articles_per_page=10, on_sidebar=True):
     return itertools.islice(enumerate(articles), min_index, max_index)
 
 
-def get_download_results_href(response, search_text):
-    """Generates a hyperlink allowing the data in a given panda dataframe to be downloaded
-    in:  dataframe
-    out: href string
-    """
-
-    document = "title;date;body\n"
-    for result in response.get("value"):
-        title = re.sub(";", "", result["title"])
-        date = re.sub(";", "", result["timestamp"][:10])
-        body = re.sub(";", "", result["body"])
-        body = re.sub("\n", "", body)
-        body = body + "\n"
-        line = ";".join([title, date, body])
-        document = document + line
-
-    camelcase = "_".join(search_text.split())
-    csv = document
-    b64 = base64.b64encode(csv.encode()).decode()  # some strings <-> bytes conversions necessary here
-    href = f'<a download="{camelcase}.csv" href="data:file/csv;base64,{b64}">Download results</a>'
-    return href
+if "selected_record" not in st.session_state:
+    st.session_state["selected_record"] = None
 
 
-# Title
-st.markdown(
-    "<h1 style='text-align: center; '>Patients records database</h1>",
-    unsafe_allow_html=True,
-)
-# st.markdown("<h2 style='text-align: center; '>Stay safe</h2>", unsafe_allow_html=True)
-
-# Logo
-# logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "facemask.jpg")
-# robeco_logo = Image.open(logo_path)
-# st.image(robeco_logo, use_column_width=True)
-
-# Search bar
-search_query = st.text_input("Search for a patient's record", value="", max_chars=None, key=None, type="default")
-
-# TODO: add filters
+def set_record(record):
+    st.session_state["selected_record"] = record
 
 
 
-# Search API
-index_name = "train-index"
-endpoint = os.environ["ENDPOINT"]
-headers = {
-    "Content-Type": "application/json",
-    "api-key": "password",
-}
-search_url = f"{endpoint}/indexes/{index_name}/docs/search"
+if not st.session_state["selected_record"]: # search engine page
 
-search_body = {
-    "count": True,
-    "search": search_query,
-    "searchFields": "title",
-    "searchMode": "all",
-    "select": "title, body, timestamp",
-    "top": 100,
-}
+    ### SIDEBAR
+    st.sidebar.markdown('# Filters')
+    
+    age_range = st.sidebar.slider('Age', min_value=0, max_value=100, value=(0,100))
+    sexe = st.sidebar.multiselect('Sexe', ['F', 'M'], default=['F', 'M'])
+    birthdate = st.sidebar.date_input('Birthdate', value=[datetime.date(1980, 1, 1), datetime.date(2021, 1, 1)])
+    admission_date = st.sidebar.date_input('Admission date', value=[datetime.date(1980, 1, 1), datetime.date(2021, 1, 1)])
+    discharge_date = st.sidebar.date_input('Discharge date', value=[datetime.date(1980, 1, 1), datetime.date(2021, 1, 1)])
 
-# [{"name_patient": ""}]
-if search_query != "":
-    response = requests.post(search_url, headers=headers, json=search_body).json()
+    # clear filters
+    # if st.sidebar.button('Clear filters'):
+    #     st.session_state["selected_record"] = None
+    #     st.sidebar.success('Filters cleared')
 
-    record_list = []
-    _ = [
-        record_list.append({"title": record["title"], "body": record["body"], "timestamp": record["timestamp"]})
-        for record in response.get("value")
-    ]
+    st.markdown(
+        "<h1 style='text-align: center; '>Patients records database</h1>",
+        unsafe_allow_html=True,
+    )
+    # st.markdown("<h2 style='text-align: center; '>Stay safe</h2>", unsafe_allow_html=True)
 
-    # filter results
+    # Logo
+    # logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "facemask.jpg")
+    # robeco_logo = Image.open(logo_path)
+    # st.image(robeco_logo, use_column_width=True)
 
-    if record_list:
-        st.write(f'Search results ({response.get("@odata.count")}):')
+    # Search bar
+    search_query = st.text_input("Search for a patient's record", value="", max_chars=None, key=None, type="default")
 
-        if response.get("@odata.count") > 100:
-            shown_results = 100
+
+    # Search API
+    index_name = "train-index"
+    endpoint = os.environ["ENDPOINT"]
+    headers = {
+        "Content-Type": "application/json",
+        "api-key": "password",
+    }
+    search_url = f"{endpoint}/indexes/{index_name}/docs/search"
+    filters = {
+        "age": age_range,
+        "sexe": sexe,
+        "birthdate": birthdate,
+        "admission_date": admission_date,
+        "discharge_date": discharge_date,
+    }
+    search_body = {
+        "query": search_query,
+        "filters": json.dumps(filters, default=str),
+        "top": 10,
+    }
+
+    if search_query != "":
+        response = requests.post(search_url, headers=headers, json=search_body).json()
+
+        record_list = []
+        _ = [
+            record_list.append(
+                {"filename": record["filename"], "preview": record["preview"], "metadata": record["metadata"]}
+            )
+            for record in response.get("value")
+        ]
+
+        # filter results
+
+        if record_list:
+            st.write(f'Search results ({response.get("count")}):')
+
+            if response.get("count") > 100:
+                shown_results = 100
+            else:
+                shown_results = response.get("count")
+
+            for i, record in paginator(
+                f"Select results (showing {shown_results} of {response.get('count')} results)",
+                record_list,
+            ):
+                st.write("**Search result:** %s." % (i + 1))
+                st.button(f"View {record['filename']}", on_click=lambda: set_record(record), key=record["filename"])
+                st.write("**Filename:** %s" % (record["filename"]))
+                st.write("**Preview:** %s" % (record["preview"]))
         else:
-            shown_results = response.get("@odata.count")
+            st.write(f"No Search results, please try again with different keywords")
 
-        for i, record in paginator(
-            f"Select results (showing {shown_results} of {response.get('@odata.count')} results)",
-            record_list,
-        ):
-            st.write("**Search result:** %s." % (i + 1))
-            st.write("**Title:** %s" % (record["title"]))
-            st.write("**Date:** %s" % (record["timestamp"][:10]))
-            st.write("**Body:** %s" % (record["body"]))
+else:  # a record has been selected
 
-        st.sidebar.markdown(get_download_results_href(response, search_query), unsafe_allow_html=True)
+    st.button("Back", on_click=lambda: set_record(None))
 
-    else:
-        st.write(f"No Search results, please try again with different keywords")
+    st.markdown(
+        "<h1 style='text-align: center; '>Patient record</h1>",
+        unsafe_allow_html=True,
+    )
+
+    st.write(st.session_state["selected_record"])
