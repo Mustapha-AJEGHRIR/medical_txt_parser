@@ -79,7 +79,12 @@ def set_record(record):
 
 
 if not st.session_state["selected_record"]: # search engine page
-
+    st.set_page_config(
+        page_title="Records Database",
+        page_icon="🏥",
+        layout="centered",
+        initial_sidebar_state="auto",
+    )
     ### SIDEBAR
     st.sidebar.markdown('# Filters')
     
@@ -163,17 +168,23 @@ if not st.session_state["selected_record"]: # search engine page
             st.write(f"No Search results, please try again with different keywords")
 
 else:  # a record has been selected
-
+    st.set_page_config(
+        page_title=f"Record {st.session_state['selected_record']['filename']}",
+        page_icon="👨‍⚕️",
+        layout="wide",
+        initial_sidebar_state="collapsed",
+    )
     st.button("Back", on_click=lambda: set_record(None))
 
     st.markdown(
         "<h1 style='text-align: center; '>Patient record</h1>",
         unsafe_allow_html=True,
     )
-    html = visualize_record(st.session_state["selected_record"])
+    visualize_record(st.session_state["selected_record"])
     # HTML_WRAPPER = """<div style="overflow-x: auto; border: 1px solid #e6e9ef; border-radius: 0.25rem; padding: 1rem">{}</div>"""
     # st.write(HTML_WRAPPER.format(html),unsafe_allow_html=True)
 
-    st.write(html,unsafe_allow_html=True)
+    # st.write(html,unsafe_allow_html=True)
+    
     st.write(st.session_state["selected_record"])
 
