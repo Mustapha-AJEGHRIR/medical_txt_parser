@@ -110,9 +110,9 @@ class Get_and_process_data:
                  data_path = DEFAULT_DATA_DIR, train_split = 0.8, add_unlabeled=True):
         self.labels = ["test", "treatment", 
                     "present", "absent", "possible", "conditional",
-                    "hypothetical", "associated with someone else"]
+                    "hypothetical", "associated_with_someone_else"]
         self.train_data_path = os.path.join(data_path, "train")
-        self.test_data_path = os.path.join(data_path, "val")
+        self.test_data_path = os.path.join(data_path, "test")
         self.ast_folder_name = "ast"
         self.concept_folder_name = "concept"
         self.rel_folder_name = "rel"

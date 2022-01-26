@@ -15,7 +15,7 @@ ast_to_concept = {
     "possible" : "problem",
     "conditional" : "problem",
     "hypothetical" : "problem",
-    "associated with someone else" : "problem"
+    "associated_with_someone_else" : "problem"
 }
 
 token_id_to_label = {0: 'o',
@@ -33,8 +33,8 @@ token_id_to_label = {0: 'o',
                         12: 'conditional',
                         13: 'hypothetical',
                         14: 'hypothetical',
-                        15: 'associated with someone else',
-                        16: 'associated with someone else'}
+                        15: 'associated_with_someone_else',
+                        16: 'associated_with_someone_else'}
 
 
 def save_predictions(test_data, predictions, ast_to_concept=ast_to_concept, token_id_to_label=token_id_to_label, output_dir=DEFAULT_OUTPUT_DIR):
