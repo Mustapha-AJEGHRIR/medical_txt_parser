@@ -8,8 +8,8 @@ lines_per_tokenization = 5
 filename_split_key = "__at__"
 # Load model from HuggingFace Hub
 device = "cuda"
-# model_checkpoint = "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"
-model_checkpoint = "gsarti/scibert-nli"
+model_checkpoint = "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"
+# model_checkpoint = "gsarti/scibert-nli"
 # model_checkpoint = "logs/scibert_20_epochs_64_batch_99_train_split"
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 model = AutoModel.from_pretrained(model_checkpoint)
