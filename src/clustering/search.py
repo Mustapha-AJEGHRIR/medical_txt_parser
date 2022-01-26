@@ -43,19 +43,20 @@ def search(query, k=neighbors_k):
     scores, data_names = buffer.get_values(), buffer.get_data()
     
     k_data = []
-    for name in data_names:
+    for i,name in enumerate(data_names):
         filename, paragraph = name.split(filename_split_key)
         paragraph = int(paragraph)
         with open(data_path + os.sep + filename + ".txt") as f:
             text = f.read()
             
-        data = {"filename" : filename,
+        data = {"score" : scores[i],
+                "filename" : filename,
                 "paragraph" : paragraph,
                 "full-text" : text,
                 "paragraph-text" : text_splitter(text)[paragraph]}
         k_data.append(data)
     
-    return scores, k_data
+    return k_data
 
 
 
