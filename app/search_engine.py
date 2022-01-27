@@ -177,11 +177,11 @@ else:  # a record has been selected
     st.button("Back", on_click=lambda: set_record(None))
 
     st.markdown(
-        "<h1 style='text-align: center; '>Patient record</h1>",
+        f"<h1 style='text-align: center; '>Patient record: {st.session_state['selected_record']['filename']}</h1>",
         unsafe_allow_html=True,
     )
     # select task
     task = st.selectbox("Task", ["concept", "assertion"], format_func=lambda x: {"concept": "Concepts detection", "assertion": "Assertions classification"}[x])
     visualize_record(st.session_state["selected_record"], task=task)
     
-    st.write(st.session_state["selected_record"])
+    # st.write(st.session_state["selected_record"])
