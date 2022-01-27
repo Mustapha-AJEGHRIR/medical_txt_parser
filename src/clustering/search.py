@@ -5,6 +5,8 @@ import pickle
 import random
 import os
 import json
+from annoy import AnnoyIndex
+
 class Buffer_best_k:
     def __init__(self, k, initia_value=-float("inf")):
         self.k = k
@@ -27,11 +29,18 @@ class Buffer_best_k:
     def get_values(self):
         return self.values
 
+# # ---------------------------------- Kmeans ---------------------------------- #
+# with open(config.embeddings_path + os.sep + "clustered_data_concepts.pkl", "rb") as f:
+#     clustered_data = pickle.load(f)
 
-with open(config.embeddings_path + os.sep + "clustered_data_concepts.pkl", "rb") as f:
-    clustered_data = pickle.load(f)
+# ----------------------------------- Annoy ---------------------------------- #
+with open(config.embeddings_path + os.sep + "index_to_name.pkl", "rb") as f:
+    sample_names_list = pickle.load(f)
+search_index = AnnoyIndex(config.embedding_size, config.annoy_metric)
+search_index.load(config.embeddings_path + os.sep + "annoy_index_concepts.ann")
 
 
+# --------------------------------- Functions -------------------------------- #
 def parse_metadata(filename):
     with open(config.metadata_path + os.sep + filename + ".json") as f:
         metadata = json.load(f)
@@ -44,17 +53,25 @@ def parse_metadata(filename):
 def search_query(query, filters={}, top=30):
     # encore query
     query_emb = encode(query)
-    # find cluster of docs it belongs in
-    cluster = find_cluster(query_emb, clustered_data)
+    
+    
+    # ---------------------------------- Kmeans ---------------------------------- #
+    # # find cluster of docs it belongs in
+    # cluster = find_cluster(query_emb, clustered_data)
 
-    buffer = Buffer_best_k(k=top)
-    for name, doc_emb in clustered_data[cluster]["elements"].items():
-        score = similarity(query_emb, doc_emb)
-        # print(name, "\t{:.2f}".format(float(score)))
-        buffer.new_val(score, name)
+    # buffer = Buffer_best_k(k=top)
+    # for name, doc_emb in clustered_data[cluster]["elements"].items():
+    #     score = similarity(query_emb, doc_emb)
+    #     # print(name, "\t{:.2f}".format(float(score)))
+    #     buffer.new_val(score, name)
 
-    scores, data_names = buffer.get_values(), buffer.get_data()
-
+    # scores, data_names = buffer.get_values(), buffer.get_data()
+    
+    # ----------------------------------- Annoy ---------------------------------- #
+    indeces, scores = search_index.get_nns_by_vector(query_emb.numpy().reshape(-1), top, include_distances=True)
+    data_names = [sample_names_list[i] for i in indeces]
+    
+    
     results = []
     for i, name in enumerate(data_names):
         filename, paragraph = name.split(config.filename_split_key)
