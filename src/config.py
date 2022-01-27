@@ -4,6 +4,7 @@ import torch
 
 
 neighbors_k = 5
+clusters = 10
 lines_per_tokenization = 5
 filename_split_key = "__at__"
 # Load model from HuggingFace Hub
