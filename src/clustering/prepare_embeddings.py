@@ -38,7 +38,7 @@ def train():
     sample.shape
 
 
-    clustering = KMeans(n_clusters = 10).fit(sample)
+    clustering = KMeans(n_clusters = clusters).fit(sample)
 
 
 
