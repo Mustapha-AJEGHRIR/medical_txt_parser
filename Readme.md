@@ -50,3 +50,14 @@ Then execute the following command to build the dataset from the root of the pro
 $ ./src/data_merger.sh
 ```
 
+To prepare the embeddings and clusters for the search API:
+```bash
+$ cd src
+$ python -m clustering.prepare_embeddings
+```
+
+To launch the app, start in the root directory of the project by executing :
+```
+$ python src/api.py
+$ streamlit run app/search_engine.py
+```

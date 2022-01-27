@@ -14,7 +14,7 @@ import torch
 import numpy as np
 
 # ------------------------ Classification and friends ------------------------ #
-from sklearn.cluster import AgglomerativeClustering, KMeans
+from sklearn.cluster import KMeans
 
 def train():
     all_docs = {}
