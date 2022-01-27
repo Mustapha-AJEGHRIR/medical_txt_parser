@@ -39,7 +39,7 @@ def parse_metadata(filename):
     return metadata
 
 
-def search_query(query, filters={}, top=10):
+def search_query(query, filters={}, top=30):
     # encore query
     query_emb = encode(query)
     # find cluster of docs it belongs in
@@ -70,6 +70,7 @@ def search_query(query, filters={}, top=10):
             }
         )
 
+    # TODO: need a better filtering
     # filter results
     range_filters = ["age", "birthdate", "admission_date", "discharge_date"]
     multiselect_filters = ["sexe"]
@@ -80,12 +81,14 @@ def search_query(query, filters={}, top=10):
             if key in filters and result["metadata"][key] != None:
                 if filters[key][0] > result["metadata"][key] or filters[key][1] < result["metadata"][key]:
                     valid = False
+                    print("filtered", result["metadata"][key], filters[key])
                     break
         if valid:
             for key in multiselect_filters:
-                if key in filters and result["metadata"][key] != None:
+                if key in filters:
                     if result["metadata"][key] not in filters[key]:
                         valid = False
+                        print("filtered", result["metadata"][key], filters[key])
                         break
         if valid:
             filtered_results.append(result)

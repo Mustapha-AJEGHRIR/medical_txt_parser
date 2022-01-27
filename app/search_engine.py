@@ -89,7 +89,7 @@ if not st.session_state["selected_record"]: # search engine page
     st.sidebar.markdown('# Filters')
     
     age_range = st.sidebar.slider('Age', min_value=0, max_value=100, value=(0,100))
-    sexe = st.sidebar.multiselect('Sexe', ['F', 'M'], default=['F', 'M'])
+    sexe = st.sidebar.multiselect('Sexe', ['F', 'M', 'N/A'], default=['F', 'M', 'N/A'])
     birthdate = st.sidebar.date_input('Birthdate', value=[datetime.date(1900, 1, 1), datetime.date(2021, 1, 1)])
     admission_date = st.sidebar.date_input('Admission date', value=[datetime.date(1900, 1, 1), datetime.date(2021, 1, 1)])
     discharge_date = st.sidebar.date_input('Discharge date', value=[datetime.date(1900, 1, 1), datetime.date(2021, 1, 1)])
@@ -132,7 +132,7 @@ if not st.session_state["selected_record"]: # search engine page
     search_body = {
         "query": search_query,
         "filters": json.dumps(filters, default=str),
-        "top": 10,
+        "top": 30,
     }
 
     if search_query != "":
