@@ -15,6 +15,8 @@ tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 model = AutoModel.from_pretrained(model_checkpoint)
 data_path = os.path.join(os.path.dirname(__file__), "../data/train/txt")
 embeddings_path = data_path + os.sep + "embeddings"
+train_data_path = os.path.join(os.path.dirname(__file__), "../data/train")
+metadata_path = train_data_path + os.sep + "metadata"
 similarity = torch.nn.CosineSimilarity()
 if not os.path.exists(embeddings_path):
     os.makedirs(embeddings_path)
