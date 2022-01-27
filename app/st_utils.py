@@ -44,7 +44,7 @@ def visualize_record(record, task="assertion"):
         doc,
         labels=possible_labels,
         show_table=False,
-        # title="Persons, dates and locations",
+        title="",
         manual=True,
         displacy_options={
             "colors": {

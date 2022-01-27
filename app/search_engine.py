@@ -5,6 +5,7 @@ import os
 import re
 import json
 from dotenv import load_dotenv
+
 load_dotenv()
 import datetime
 
@@ -72,53 +73,58 @@ def paginator(label, articles, articles_per_page=10, on_sidebar=True):
 if "selected_record" not in st.session_state:
     st.session_state["selected_record"] = None
 
-st.markdown(
-    """
-    <style>
-    .container {
-        margin-bottom: 20px;
-    }
-    .logo-img {
-        max-width: 40%;
-        max-height:200px;
-        margin: auto;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.markdown(
-    f"""
-    <div class="container">
-        <center>
-            <img class="logo-img" src="https://www.pressonline.com/illuin-technology/files/2019/08/xlogo-illuin-technology.png.pagespeed.ic.P4glNQKPUa.png">
-        </center>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
 
 def set_record(record):
     st.session_state["selected_record"] = record
 
 
-
-if not st.session_state["selected_record"]: # search engine page
+if not st.session_state["selected_record"]:  # search engine page
     st.set_page_config(
         page_title="Records Database",
         page_icon="🏥",
         layout="centered",
         initial_sidebar_state="auto",
     )
+
+    st.markdown(
+        """
+        <style>
+        .container {
+            margin-bottom: 20px;
+        }
+        .logo-img {
+            max-width: 40%;
+            max-height:200px;
+            margin: auto;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        f"""
+        <div class="container">
+            <center>
+                <img class="logo-img" src="https://www.pressonline.com/illuin-technology/files/2019/08/xlogo-illuin-technology.png.pagespeed.ic.P4glNQKPUa.png">
+            </center>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     ### SIDEBAR
-    st.sidebar.markdown('# Filters')
-    
-    age_range = st.sidebar.slider('Age', min_value=0, max_value=100, value=(0,100))
-    sexe = st.sidebar.multiselect('Sexe', ['F', 'M', 'N/A'], default=['F', 'M', 'N/A'])
-    birthdate = st.sidebar.date_input('Birthdate', value=[datetime.date(1900, 1, 1), datetime.date(2021, 1, 1)])
-    admission_date = st.sidebar.date_input('Admission date', value=[datetime.date(1900, 1, 1), datetime.date(2021, 1, 1)])
-    discharge_date = st.sidebar.date_input('Discharge date', value=[datetime.date(1900, 1, 1), datetime.date(2021, 1, 1)])
+    st.sidebar.markdown("# Filters")
+
+    age_range = st.sidebar.slider("Age", min_value=0, max_value=100, value=(0, 100))
+    sexe = st.sidebar.multiselect("Sexe", ["F", "M", "N/A"], default=["F", "M", "N/A"])
+    birthdate = st.sidebar.date_input("Birthdate", value=[datetime.date(1900, 1, 1), datetime.date(2021, 1, 1)])
+    admission_date = st.sidebar.date_input(
+        "Admission date", value=[datetime.date(1900, 1, 1), datetime.date(2021, 1, 1)]
+    )
+    discharge_date = st.sidebar.date_input(
+        "Discharge date", value=[datetime.date(1900, 1, 1), datetime.date(2021, 1, 1)]
+    )
 
     # clear filters
     # if st.sidebar.button('Clear filters'):
@@ -138,7 +144,6 @@ if not st.session_state["selected_record"]: # search engine page
 
     # Search bar
     search_query = st.text_input("Search for a patient's record", value="", max_chars=None, key=None, type="default")
-
 
     # Search API
     index_name = "train-index"
@@ -167,7 +172,13 @@ if not st.session_state["selected_record"]: # search engine page
         record_list = []
         _ = [
             record_list.append(
-                {"filename": record["filename"], "preview": record["preview"], "metadata": record["metadata"], "id": record["id"]}
+                {
+                    "filename": record["filename"],
+                    "preview": record["preview"],
+                    "metadata": record["metadata"],
+                    "id": record["id"],
+                    "score": record["score"],
+                }
             )
             for record in response.get("value")
         ]
@@ -186,41 +197,42 @@ if not st.session_state["selected_record"]: # search engine page
                 f"Select results (showing {shown_results} of {response.get('count')} results)",
                 record_list,
             ):
-                st.write("**Search result:** %s." % (i + 1))
 
-            #if st.button(f"Search result for patient number {i + 1}"):
-                
-                st.button(f"View {record['filename']}", on_click=lambda: set_record(record), key=record["filename"])
-                col11, col12 = st.columns([1,2])
+                col11, col12 = st.columns([1, 2])
 
                 with col11:
                     logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hospital-patient.png")
                     robeco_logo = Image.open(logo_path)
-                    st.image(robeco_logo, use_column_width=True)
+                    st.image(
+                        robeco_logo,
+                        use_column_width=True,
+                    )
 
                 with col12:
                     st.write("**Filename:** %s" % (record["filename"]))
+                    st.write(f"**Relevance score:** {record['score']:.2f}")
                     st.write("**Preview:** %s" % (record["preview"]))
+                    st.button(f"View record", on_click=lambda: set_record(record), key=record["id"])
 
-                
-                with open ('app/style.css') as f :
-                    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-                
+                with open("app/style.css") as f:
+                    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
                 col1, col2, col3, col4, col5 = st.columns(5)
                 col1.metric("Age of patient", record["metadata"]["age"])
-                col2.metric("Sexe", record["metadata"]["sexe"])
+                col2.metric("Sexe", record["metadata"]["sexe"] if record["metadata"]["sexe"] != "N/A" else None)
                 col3.metric("Birthdate", record["metadata"]["birthdate"])
                 col4.metric("Admission date", record["metadata"]["admission_date"])
                 col5.metric("Discharge date", record["metadata"]["discharge_date"])
 
                 st.markdown("---")
-            
+
         else:
             st.write(f"No Search results, please try again with different keywords")
 
 else:  # a record has been selected
+    record = st.session_state.get("selected_record")
     st.set_page_config(
-        page_title=f"Record {st.session_state['selected_record']['filename']}",
+        page_title=f"Record {record['filename']}",
         page_icon="👨‍⚕️",
         layout="wide",
         initial_sidebar_state="collapsed",
@@ -228,11 +240,23 @@ else:  # a record has been selected
     st.button("Back", on_click=lambda: set_record(None))
 
     st.markdown(
-        f"<h1 style='text-align: center; '>Patient record: {st.session_state['selected_record']['filename']}</h1>",
+        f"<h1 style='text-align: center; '>Patient record: {record['filename']}</h1>",
         unsafe_allow_html=True,
     )
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+    col1.metric("Age of patient", record["metadata"]["age"])
+    col2.metric("Sexe", record["metadata"]["sexe"] if record["metadata"]["sexe"] != "N/A" else None)
+    col3.metric("Birthdate", record["metadata"]["birthdate"])
+    col4.metric("Admission date", record["metadata"]["admission_date"])
+    col5.metric("Discharge date", record["metadata"]["discharge_date"])
+
     # select task
-    task = st.selectbox("Task", ["concept", "assertion"], format_func=lambda x: {"concept": "Concepts detection", "assertion": "Assertions classification"}[x])
-    visualize_record(st.session_state["selected_record"], task=task)
-    
-    # st.write(st.session_state["selected_record"])
+    task = st.selectbox(
+        "Task",
+        ["concept", "assertion"],
+        format_func=lambda x: {"concept": "Concepts detection", "assertion": "Assertions classification"}[x],
+    )
+    visualize_record(record, task=task)
+
+    # st.write(record)

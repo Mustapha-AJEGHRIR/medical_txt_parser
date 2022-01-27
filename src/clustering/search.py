@@ -35,7 +35,9 @@ with open(config.embeddings_path + os.sep + "clustered_data_concepts.pkl", "rb")
 def parse_metadata(filename):
     with open(config.metadata_path + os.sep + filename + ".json") as f:
         metadata = json.load(f)
-    print("metadate", metadata)
+    print("metadata", metadata)
+    if metadata["age"] != None:
+        metadata["age"] = int(metadata["age"])
     return metadata
 
 

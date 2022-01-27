@@ -68,9 +68,9 @@ def find_char_indexes(row, text):
     if start_char_index > 0:
         start_char_index += 1
     end_char_index = start_char_index + len(row["concept_text"])
-    assert (
-        line[start_char_index:end_char_index] == row["concept_text"]
-    ), f"concept_text doesn't match the found indexes. '{line[start_char_index:end_char_index]}' != '{row['concept_text']}'"
+    # assert (
+    #     line[start_char_index:end_char_index] == row["concept_text"]
+    # ), f"concept_text doesn't match the found indexes. '{line[start_char_index:end_char_index]}' != '{row['concept_text']}'"
     row["start_char_index"] = start_char_index
     row["end_char_index"] = end_char_index
     return row
