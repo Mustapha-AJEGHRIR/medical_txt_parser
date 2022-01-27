@@ -4,7 +4,7 @@ from .utils import mean_pooling, encode, find_cluster, text_splitter, semantic_s
 import pickle
 import random
 import os
-
+import json
 class Buffer_best_k:
     def __init__(self, k, initia_value=-float("inf")):
         self.k = k
@@ -33,13 +33,10 @@ with open(config.embeddings_path + os.sep + "clustered_data_concepts.pkl", "rb")
 
 
 def parse_metadata(filename):
-    return {
-        "age": 30,
-        "sexe": f"{random.choice(['F', 'M'])}",
-        "birthdate": f"1990-01-01",
-        "admission_date": f"1990-01-01",
-        "discharge_date": f"1990-01-01",
-    }
+    with open(config.metadata_path + os.sep + filename + ".json") as f:
+        metadata = json.load(f)
+    print("metadate", metadata)
+    return metadata
 
 
 def search_query(query, filters={}, top=10):
@@ -80,13 +77,13 @@ def search_query(query, filters={}, top=10):
     for result in results:
         valid = True
         for key in range_filters:
-            if key in filters:
+            if key in filters and result["metadata"][key] != None:
                 if filters[key][0] > result["metadata"][key] or filters[key][1] < result["metadata"][key]:
                     valid = False
                     break
         if valid:
             for key in multiselect_filters:
-                if key in filters:
+                if key in filters and result["metadata"][key] != None:
                     if result["metadata"][key] not in filters[key]:
                         valid = False
                         break
