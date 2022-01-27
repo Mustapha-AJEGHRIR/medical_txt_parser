@@ -106,12 +106,16 @@ if not st.session_state["selected_record"]:  # search engine page
         f"""
         <div class="container">
             <center>
-                <img class="logo-img" src="https://www.pressonline.com/illuin-technology/files/2019/08/xlogo-illuin-technology.png.pagespeed.ic.P4glNQKPUa.png">
+                <img class="logo-img" src="https://library.kissclipart.com/20180828/iow/kissclipart-hospital-emoji-clipart-emoji-hospital-health-care-42be25f0c97c1871.png">
             </center>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    # logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hospital.png")
+    # robeco_logo = Image.open(logo_path)
+    # st.image(robeco_logo, width=300)
 
     ### SIDEBAR
     st.sidebar.markdown("# Filters")
@@ -260,3 +264,33 @@ else:  # a record has been selected
     visualize_record(record, task=task)
 
     # st.write(record)
+
+
+footer="""<style>
+a:link , a:visited{
+color: blue;
+background-color: transparent;
+text-decoration: underline;
+}
+
+a:hover,  a:active {
+color: red;
+background-color: transparent;
+text-decoration: underline;
+}
+
+.footer {
+# position: fixed;
+left: 0;
+bottom: 0;
+width: 100%;
+background-color: white;
+color: black;
+text-align: center;
+}
+</style>
+<div class="footer">
+<p>Made with ❤️ for <b>CentraleSupélec x Illuin Technology</b></p>
+</div>
+"""
+st.markdown(footer,unsafe_allow_html=True)
