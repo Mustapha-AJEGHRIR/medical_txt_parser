@@ -72,6 +72,32 @@ def paginator(label, articles, articles_per_page=10, on_sidebar=True):
 if "selected_record" not in st.session_state:
     st.session_state["selected_record"] = None
 
+st.markdown(
+    """
+    <style>
+    .container {
+        margin-bottom: 20px;
+    }
+    .logo-img {
+        max-width: 40%;
+        max-height:200px;
+        margin: auto;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    f"""
+    <div class="container">
+        <center>
+            <img class="logo-img" src="https://www.pressonline.com/illuin-technology/files/2019/08/xlogo-illuin-technology.png.pagespeed.ic.P4glNQKPUa.png">
+        </center>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 def set_record(record):
     st.session_state["selected_record"] = record
@@ -160,10 +186,35 @@ if not st.session_state["selected_record"]: # search engine page
                 f"Select results (showing {shown_results} of {response.get('count')} results)",
                 record_list,
             ):
-                st.button(f"View record {record['filename']}", on_click=lambda: set_record(record), key=record["id"])
-                st.write("**Filename:** %s" % (record["filename"]))
-                st.write("**Preview:** %s" % (record["preview"]))
+                st.write("**Search result:** %s." % (i + 1))
+
+            #if st.button(f"Search result for patient number {i + 1}"):
+                
+                st.button(f"View {record['filename']}", on_click=lambda: set_record(record), key=record["filename"])
+                col11, col12 = st.columns([1,2])
+
+                with col11:
+                    logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hospital-patient.png")
+                    robeco_logo = Image.open(logo_path)
+                    st.image(robeco_logo, use_column_width=True)
+
+                with col12:
+                    st.write("**Filename:** %s" % (record["filename"]))
+                    st.write("**Preview:** %s" % (record["preview"]))
+
+                
+                with open ('app/style.css') as f :
+                    st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+                
+                col1, col2, col3, col4, col5 = st.columns(5)
+                col1.metric("Age of patient", record["metadata"]["age"])
+                col2.metric("Sexe", record["metadata"]["sexe"])
+                col3.metric("Birthdate", record["metadata"]["birthdate"])
+                col4.metric("Admission date", record["metadata"]["admission_date"])
+                col5.metric("Discharge date", record["metadata"]["discharge_date"])
+
                 st.markdown("---")
+            
         else:
             st.write(f"No Search results, please try again with different keywords")
 
