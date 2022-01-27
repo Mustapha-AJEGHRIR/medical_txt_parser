@@ -290,7 +290,7 @@ text-align: center;
 }
 </style>
 <div class="footer">
-<p>Developed with ❤️ for <b>CentraleSupélec x Illuin Technology</b></p>
+<p>Made with ❤️ for <b>CentraleSupélec x Illuin Technology</b></p>
 </div>
 """
 st.markdown(footer,unsafe_allow_html=True)
