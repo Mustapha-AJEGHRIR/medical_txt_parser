@@ -8,19 +8,13 @@ from .utils import *
 
 # ---------------------------- Display and friends --------------------------- #
 from tqdm import tqdm
-from matplotlib import pyplot as plt
 
 # ------------------------- Transformers and freinds ------------------------- #
-# from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoModel
-# from sentence_transformers import SentenceTransformer, util
 import torch
-import torch.nn.functional as F
 import numpy as np
 
 # ------------------------ Classification and friends ------------------------ #
-from scipy.cluster.hierarchy import dendrogram
 from sklearn.cluster import AgglomerativeClustering, KMeans
-from sklearn.manifold import TSNE
 
 def train():
     all_docs = {}
