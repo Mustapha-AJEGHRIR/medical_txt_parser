@@ -1,8 +1,9 @@
 # Description
-<center>
+
+<p align="center">
 <img src="./assets/cs.png" alt="cs" width="100"/>
 <img src="./assets/illuin.png" alt="illuin" width="100"/>
-</center>
+</p>
 
 This repository contains our code for a competition organised by Centrale Supelec and Illuin Technology. It is possible to learn more about the tasks by looking at the content of the folder `Explication dataset` or by looking at the final presentation in `presentation`.
 
