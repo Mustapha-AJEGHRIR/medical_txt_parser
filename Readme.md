@@ -1,4 +1,24 @@
+# Description
+<center>
+<img src="./assets/cs.png" alt="cs" width="100"/>
+<img src="./assets/illuin.png" alt="illuin" width="100"/>
+</center>
 
+This repository contains our code for a competition organised by Centrale Supelec and Illuin Technology. It is possible to learn more about the tasks by looking at the content of the folder `Explication dataset` or by looking at the final presentation in `presentation`.
+
+The competitions contained 2 parts, the first contains 3 tasks of NER, NLI, text classification... and the second is the creation of a search engine capable of finding patients based on filters and a search Query.
+![simple demo](./assets/simple_demo.gif)
+
+
+# Mainly used technologies
+ - Transformers library by HuggingFace
+ - Scibert
+ - Biobert
+ - Electramed
+ - MiniLM-L6
+ - Streamlit
+ - Flask
+ - Annoy
 # How to use 
 ## Evaluation
 First, we need to download the submodule for evaluation :

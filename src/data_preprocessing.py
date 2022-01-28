@@ -107,7 +107,7 @@ def get_generate_row_labels(tokenizer, label_list, available_labels, verbose=Fal
 # ---------------------------------------------------------------------------- #
 class Get_and_process_data:
     def __init__(self, tokenizer = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT), 
-                 data_path = DEFAULT_DATA_DIR, train_split = 0.8, add_unlabeled=True):
+                data_path = DEFAULT_DATA_DIR, train_split = 0.8, add_unlabeled=True):
         self.labels = ["test", "treatment", 
                     "present", "absent", "possible", "conditional",
                     "hypothetical", "associated_with_someone_else"]
