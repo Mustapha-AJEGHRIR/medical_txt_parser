@@ -216,7 +216,7 @@ if not st.session_state["selected_record"]:  # search engine page
                     st.write("**Filename:** %s" % (record["filename"]))
                     st.write(f"**Relevance score:** {record['score']:.2f}")
                     st.write("**Preview:** %s" % (record["preview"]))
-                    st.button(f"View record", on_click=lambda: set_record(record), key=record["id"])
+                    st.button(f"View record", on_click=lambda record=record: set_record(record), key=record["id"])
 
                 with open("app/style.css") as f:
                     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
