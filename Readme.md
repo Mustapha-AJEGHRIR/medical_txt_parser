@@ -29,6 +29,7 @@ $ git submodule update
 ```
 
 ## Build dataset
+You can find the data here https://portal.dbmi.hms.harvard.edu/projects/n2c2-nlp/
 First we need to have the initial data as follows :
 
 ```bash
